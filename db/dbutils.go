@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func getDatabaseConnection(username, password, host, port, databaseName string) (*sql.DB, error) {
+func GetDatabaseConnection(username, password, host, port, databaseName string) (*sql.DB, error) {
 	var connectionString = ""
 
 	if host == "" && port == "" {
@@ -14,5 +14,7 @@ func getDatabaseConnection(username, password, host, port, databaseName string) 
 		connectionString = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, databaseName)
 	}
 
-	return sql.Open("mysql", connectionString)
+	connection, err := sql.Open("mysql", connectionString)
+
+	return connection, err
 }

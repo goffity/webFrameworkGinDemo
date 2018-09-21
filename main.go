@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"../webFrameworkGin/db"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
@@ -27,25 +27,25 @@ func getUserAction(c *gin.Context) {
 func getUser(c *gin.Context) {
 	log.Print("getUser")
 
-	connection, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:3307)/cafe_roamer")
-	if err != nil {
-		panic(err.Error())
+	connection, errorConnection := db.GetDatabaseConnection("root", "root", "127.0.0.1", "3307", "cafe_roamer")
+	if errorConnection != nil {
+		panic(errorConnection.Error())
 	}
 	defer connection.Close()
 
-	err = connection.Ping()
-	if err != nil {
-		panic(err.Error())
+	errorConnection = connection.Ping()
+	if errorConnection != nil {
+		panic(errorConnection.Error())
 	}
 
-	preparement, err := connection.Prepare("SELECT id FROM member WHERE member.name LIKE ?")
+	preparedStatement, errorStatement := connection.Prepare("SELECT id FROM member WHERE member.name LIKE ?")
 
 	name := c.Param("name")
 	log.Print("name: ", name)
-	err = preparement.QueryRow(name).Scan(&name)
+	errorStatement = preparedStatement.QueryRow(name).Scan(&name)
 
-	if err != nil {
-		panic(err.Error()) // proper error handling instead of panic in your app
+	if errorStatement != nil {
+		panic(errorStatement.Error()) // proper error handling instead of panic in your app
 	}
 
 	log.Print("Member id is ", name)

@@ -27,7 +27,7 @@ func getUserAction(c *gin.Context) {
 func getUser(c *gin.Context) {
 	log.Print("getUser")
 
-	connection, errorConnection := db.GetDatabaseConnection("root", "root", "127.0.0.1", "3307", "cafe_roamer")
+	connection, errorConnection := db.GetDatabaseConnection("root", "root", "127.0.0.1", "3307", "gotest")
 	if errorConnection != nil {
 		panic(errorConnection.Error())
 	}
@@ -38,19 +38,28 @@ func getUser(c *gin.Context) {
 		panic(errorConnection.Error())
 	}
 
-	preparedStatement, errorStatement := connection.Prepare("SELECT id FROM member WHERE member.name LIKE ?")
-
 	name := c.Param("name")
 	log.Print("name: ", name)
-	errorStatement = preparedStatement.QueryRow(name).Scan(&name)
 
-	if errorStatement != nil {
-		panic(errorStatement.Error()) // proper error handling instead of panic in your app
+	selDB, selError := connection.Query("SELECT * FROM person WHERE first_name=?", name)
+	if selError != nil {
+		panic(selError.Error())
 	}
 
-	log.Print("Member id is ", name)
+	var id int
+	var firstname, lastname string
 
-	c.String(http.StatusOK, "Your ID is %s", name)
+	for selDB.Next() {
+
+		selError = selDB.Scan(&id, &firstname, &lastname)
+		if selError != nil {
+			panic(selError.Error())
+		}
+		log.Print("id ", id)
+		log.Print("name ", firstname)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"id": id, "name": name, "lastname": lastname})
 
 }
 
